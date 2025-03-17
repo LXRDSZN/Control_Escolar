@@ -12,13 +12,13 @@ import { ConsultaMateria, registrarMateria } from '../models/Materias-CRUD/Mater
 const router = express.Router();
 
 //importamos modelos para Horarios
-import { ConsultaHorario , registrarHorario} from '../models/Horarios-CRUD/Horarios-Consulta.js';
+import { ConsultaHorario , registrarHorario, eliminarHorario} from '../models/Horarios-CRUD/Horarios-Consulta.js';
 
 //importamos modelos de grupo
 import { Consultagrupos, registrarGrupo } from '../models/Grupos-CRUD/Grupos-Consulta.js';
 
 //imnpotamos modelos de KARDEX
-import { ConsultaKardex, registrarkardex } from '../models/Kardex-CRUD/Kardex-Consulta.js';
+import { ConsultaKardex, registrarkardex, eliminarKardex } from '../models/Kardex-CRUD/Kardex-Consulta.js';
 
 /*
 ##################################################################################################
@@ -269,7 +269,40 @@ router.post('/auth/registrarkardex', async (req, res) => {
 */
 
 // Endpoint para eliminar un alumno
+//Endpoint para eliminar Kardex 
+router.post('/auth/bajakardex', async (req, res) => {
+  const { idKardex } = req.body; // Obtén el Id_Kardex desde el cuerpo de la solicitud
 
+  try {
+    const result = await eliminarKardex(idKardex); // Llama a la función eliminarKardex
+
+    if (result.affectedRows > 0) {
+      return res.status(200).json({ message: 'Kardex eliminado correctamente' });
+    } else {
+      return res.status(400).json({ message: 'No se encontró el Kardex' });
+    }
+  } catch (error) {
+    console.error('Error al eliminar el Kardex:', error);
+    return res.status(500).json({ message: 'Error del servidor', error });
+  }
+});
+// Ruta para eliminar un Horario
+router.post('/auth/bajahorario', async (req, res) => {
+  const { idhorario } = req.body; // Obtén el Id_Kardex desde el cuerpo de la solicitud
+
+  try {
+    const result = await eliminarHorario(idhorario); // Llama a la función eliminarKardex
+
+    if (result.affectedRows > 0) {
+      return res.status(200).json({ message: 'Horario eliminado correctamente' });
+    } else {
+      return res.status(400).json({ message: 'No se encontró el Horario' });
+    }
+  } catch (error) {
+    console.error('Error al eliminar el Horario:', error);
+    return res.status(500).json({ message: 'Error del servidor', error });
+  }
+});
 /*
 ##################################################################################################
 #                          Endpoint para Actualizar                                               #

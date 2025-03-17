@@ -1,7 +1,7 @@
 <script setup>
-import { obtenerhorarios } from '@/backend/services/api';
 import { ref, onMounted } from 'vue';
-import AltaHorarios from './Alta-Horarios/Alta-Horarios.vue'; // Importa el componente de alta de horarios
+import { obtenerhorarios, eliminarHorario } from '@/backend/services/api'; // Importa eliminarHorario
+import AltaHorarios from './Alta-Horarios/Alta-Horarios.vue';
 
 const Horario = ref([]);  // Almacenará los horarios obtenidos de la API
 const error = ref('');  // Para manejar posibles errores
@@ -10,7 +10,7 @@ const error = ref('');  // Para manejar posibles errores
 onMounted(async () => {
   try {
     Horario.value = await obtenerhorarios();
-    console.log('Horarios obtenidos:', Horario.value);  // Para verificar los datos en la consola
+    console.log('Horarios obtenidos:', Horario.value);
   } catch (err) {
     error.value = 'No se pudieron cargar los horarios. Intenta más tarde.';
     console.error('Error al obtener los horarios:', err);
@@ -23,6 +23,22 @@ const mostrarFormulario = ref(false);
 // Función para cambiar el estado y mostrar el formulario
 const toggleFormulario = () => {
   mostrarFormulario.value = !mostrarFormulario.value;
+};
+
+// Función para eliminar un horario
+const eliminarHorarioPorId = async (idHorario) => {
+  if (!confirm('¿Estás seguro de que quieres eliminar este horario?')) {
+    return; // Si el usuario cancela, no hace nada
+  }
+
+  try {
+    await eliminarHorario(idHorario); // Llama a la función del backend
+    Horario.value = Horario.value.filter(horario => horario.Id_Horario !== idHorario); // Actualiza la lista
+    alert('Horario eliminado correctamente');
+  } catch (err) {
+    console.error('Error al eliminar el horario:', err);
+    alert('No se pudo eliminar el horario. Intenta más tarde.');
+  }
 };
 </script>
 
@@ -78,8 +94,7 @@ const toggleFormulario = () => {
             <td>{{ horario.Id_Materia }}</td>
             <td class="actions">
               <button @click="modificarHorario(horario.Id_Horario)" class="btn btn-modify">Modificar</button>
-              <button @click="eliminarHorarioPorId(horario.Id_Horario)" class="btn btn-delete">Eliminar</button>
-            </td>
+              <button @click="eliminarHorarioPorId(horario.Id_Horario)" class="btn btn-delete">Eliminar</button>            </td>
           </tr>
         </tbody>
       </table>

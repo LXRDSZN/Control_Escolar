@@ -242,6 +242,39 @@ export const alta_kardex = async (no_control,id_materia,promedio) => {
 ##################################################################################################
 */
 
+// Función para eliminar un Kardex
+export const eliminarKardex = async (idKardex) => {
+  try {
+    const response = await axios.post(`http://localhost:5000/api/auth/bajakardex`, {
+      idKardex, // Envía el Id_Kardex en el cuerpo de la solicitud
+    });
+
+    // Devuelve la respuesta de la API, que puede incluir un mensaje de éxito
+    return response.data;
+  } catch (error) {
+    console.error('Error al eliminar el Kardex:', error);
+    // Lanza el error para ser manejado en el componente Vue
+    throw error;
+  }
+};
+
+// Función para eliminar un Horario
+export const eliminarHorario = async (idhorario) => {
+  try {
+    const response = await axios.post(`http://localhost:5000/api/auth/bajahorario`, {
+      idhorario, // Envía el Id_Kardex en el cuerpo de la solicitud
+    });
+
+    // Devuelve la respuesta de la API, que puede incluir un mensaje de éxito
+    return response.data;
+  } catch (error) {
+    console.error('Error al eliminar el Kardex:', error);
+    // Lanza el error para ser manejado en el componente Vue
+    throw error;
+  }
+};
+
+
 
 
 /*

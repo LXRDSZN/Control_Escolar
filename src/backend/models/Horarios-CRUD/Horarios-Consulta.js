@@ -28,3 +28,15 @@ export const registrarHorario = async (no_control,id_profesor,id_grupo,aula,hora
     throw error; // Lanza el error para que se maneje en el controlador
   }
 };
+
+export const eliminarHorario = async (idhorario) => {
+  const query = 'DELETE FROM HORARIO WHERE Id_Horario = ?;';
+
+  try {
+    const [result] = await connection.execute(query, [idhorario]);
+    return result; // Devuelve el resultado de la consulta
+  } catch (error) {
+    console.error('Error al eliminar el Kardex:', error);
+    throw error; // Lanza el error para que se maneje en la ruta
+  }
+};

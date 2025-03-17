@@ -27,3 +27,16 @@ export const registrarkardex = async (no_control,id_materia,promedio) => {
     throw error; // Lanza el error para que se maneje en el controlador
   }
 };
+
+
+export const eliminarKardex = async (idKardex) => {
+  const query = 'DELETE FROM KARDEX WHERE Id_Kardex = ?;';
+
+  try {
+    const [result] = await connection.execute(query, [idKardex]);
+    return result; // Devuelve el resultado de la consulta
+  } catch (error) {
+    console.error('Error al eliminar el Kardex:', error);
+    throw error; // Lanza el error para que se maneje en la ruta
+  }
+};
