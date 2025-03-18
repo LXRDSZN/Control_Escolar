@@ -26,3 +26,16 @@ export const registrarMateria = async (id_materia,nombre,creditos,semestre,depar
     throw error; // Lanza el error para que se maneje en el controlador
   }
 };
+
+
+export const eliminarMateria = async (idmateria) => {
+  const query = 'DELETE FROM MATERIAS WHERE Id_Materia = ?;';
+
+  try {
+    const [result] = await connection.execute(query, [idmateria]);
+    return result; // Devuelve el resultado de la consulta
+  } catch (error) {
+    console.error('Error al eliminar la materia:', error);
+    throw error; // Lanza el error para que se maneje en la ruta
+  }
+};

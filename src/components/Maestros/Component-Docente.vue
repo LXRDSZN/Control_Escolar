@@ -1,61 +1,125 @@
 <script setup>
-import { obtenerdocentes } from '@/backend/services/api';
+import { obtenerdocentes, eliminarDocente } from '@/backend/services/api';
 import { ref, onMounted } from 'vue';
 import AltaMaestros from './Alta-Maestros/Alta-Maestros.vue';
+import ActualizarMaestros from './Actualizar-Maestros/Actualizar-Maestros.vue';
+import { useToast } from 'vue-toast-notification';
+import 'vue-toast-notification/dist/theme-sugar.css';
 
 const Docentes = ref([]);  // Almacenará los docentes obtenidos de la API
-const error = ref('');  // Para manejar posibles errores
+const error = ref('');  // Para manejar errores
+const toast = useToast(); // Inicializa el toast
+const docenteEditando = ref(null);  // Almacena el docente que se está editando
+const mostrarFormulario = ref(false); // Para mostrar el formulario de agregar
+const mostrarFormularioActualizar = ref(false); // Para mostrar el formulario de actualización
 
-// Obtener los docentes cuando el componente se monta
+// Obtener docentes cuando el componente se monta
 onMounted(async () => {
   try {
     Docentes.value = await obtenerdocentes();
-    console.log('Docentes obtenidos:', Docentes.value);  // Para verificar los datos en la consola
+    console.log('Docentes obtenidos:', Docentes.value);
   } catch (err) {
-    error.value = 'No se pudieron cargar los Docentes. Intenta más tarde.';
-    console.error('Error al obtener los Docentes:', err);
+    error.value = 'No se pudieron cargar los docentes. Intenta más tarde.';
+    console.error('Error al obtener los docentes:', err);
   }
 });
 
-// Estado reactivo para mostrar el formulario
-const mostrarFormulario = ref(false);
-
-// Función para cambiar el estado y mostrar el formulario
-const toggleFormulario = () => {
-  mostrarFormulario.value = !mostrarFormulario.value;
+// Mostrar formulario de alta
+const agregarDocente = () => {
+  docenteEditando.value = null;
+  mostrarFormulario.value = true;
+  mostrarFormularioActualizar.value = false;
 };
 
-// Función para eliminar un docente
+// Cancelar formularios
+const cancelarFormulario = () => {
+  mostrarFormulario.value = false;
+  mostrarFormularioActualizar.value = false;
+  docenteEditando.value = null;
+};
+
+// Eliminar docente por ID
 const eliminarDocentePorId = async (idProfesor) => {
-  try {
-    const result = await eliminarDocente(idProfesor);  // Llamada a la función de eliminar
-    console.log(result);  // Mensaje de éxito
-    // Eliminamos el docente de la lista en la vista
-    Docentes.value = Docentes.value.filter(docente => docente.id_profesor !== idProfesor);
-  } catch (err) {
-    error.value = 'No se pudo eliminar el docente. Intenta más tarde.';
-    console.error('Error al eliminar el docente:', err);
+  if (!confirm('¿Estás seguro de que quieres eliminar este docente?')) {
+    return;
   }
+
+  try {
+    await eliminarDocente(idProfesor);
+    Docentes.value = Docentes.value.filter(docente => docente.id_profesor !== idProfesor);
+
+    toast.success('Docente eliminado correctamente.', {
+      position: 'top-right',
+      duration: 5000,
+    });
+  } catch (err) {
+    console.error('Error al eliminar el docente:', err);
+    toast.error('No se pudo eliminar el docente. Intenta más tarde.', {
+      position: 'top-right',
+      duration: 5000,
+    });
+  }
+};
+
+// Modificar docente
+const modificarDocente = (idProfesor) => {
+  const docente = Docentes.value.find(docente => docente.id_profesor === idProfesor);
+  if (docente) {
+    docenteEditando.value = docente;
+    mostrarFormularioActualizar.value = true;
+    mostrarFormulario.value = false;
+  }
+};
+
+// Guardar cambios después de actualizar
+const guardarCambiosActualizados = async (docenteActualizado) => {
+  if (!docenteActualizado) {
+    console.error('No se pudo obtener el docente a actualizar');
+    return;
+  }
+  try {
+    // Enviar la solicitud de actualización aquí
+  } catch (err) {
+    console.error('Error al actualizar el docente:', err);
+    toast.error('No se pudo actualizar el docente. Intenta más tarde.', {
+      position: 'top-right',
+      duration: 5000,
+    });
+  }
+  
 };
 </script>
 
 <template>
   <div class="syste-panel">
     <div class="panel">
-      <!-- Contenedor de encabezado y botón en Flexbox -->
       <div class="header-container">
         <h1>Lista de Docentes</h1>
-        <!-- Botón que cambia la visibilidad del formulario -->
-        <button @click="toggleFormulario" class="btn btn-add">
+        <button 
+          @click="agregarDocente" 
+          class="btn btn-add" 
+          v-if="!mostrarFormulario && !mostrarFormularioActualizar">
           Agregar Docente
         </button>
       </div>
 
-      <!-- Mostrar el formulario de alta solo si 'mostrarFormulario' es verdadero -->
-      <AltaMaestros v-if="mostrarFormulario" @docenteRegistrado="docente => Docentes.push(docente)" />
+      <!-- Formulario de alta -->
+      <AltaMaestros 
+        v-if="mostrarFormulario" 
+        @docenteRegistrado="docente => Docentes.push(docente)"
+        @cancelar="cancelarFormulario"
+      />
+
+      <!-- Formulario de actualización -->
+      <ActualizarMaestros
+        v-if="mostrarFormularioActualizar"
+        :docente="docenteEditando"
+        @guardar="guardarCambiosActualizados"
+        @cancelar="cancelarFormulario"
+      />
 
       <!-- Tabla de docentes -->
-      <table class="docentes-table" v-if="!mostrarFormulario">
+      <table class="docentes-table" v-if="!mostrarFormulario && !mostrarFormularioActualizar">
         <thead>
           <tr>
             <th>ID Profesor</th>
@@ -68,7 +132,6 @@ const eliminarDocentePorId = async (idProfesor) => {
           </tr>
         </thead>
         <tbody>
-          <!-- Iteramos sobre los docentes y mostramos cada uno en una fila -->
           <tr v-for="docente in Docentes" :key="docente.id_profesor">
             <td>{{ docente.id_profesor }}</td>
             <td>{{ docente.Nombre }}</td>
@@ -77,8 +140,16 @@ const eliminarDocentePorId = async (idProfesor) => {
             <td>{{ docente.Telefono }}</td>
             <td>{{ docente.Especialidad }}</td>
             <td class="actions">
-              <button @click="modificarDocente(docente.id_profesor)" class="btn btn-modify">Modificar</button>
-              <button @click="eliminarDocentePorId(docente.id_profesor)" class="btn btn-delete">Eliminar</button>
+              <button 
+                @click="modificarDocente(docente.id_profesor)" 
+                class="btn btn-modify">
+                Modificar
+              </button>
+              <button 
+                @click="eliminarDocentePorId(docente.id_profesor)" 
+                class="btn btn-delete">
+                Eliminar
+              </button>
             </td>
           </tr>
         </tbody>

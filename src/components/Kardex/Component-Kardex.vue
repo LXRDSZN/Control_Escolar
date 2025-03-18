@@ -2,20 +2,24 @@
 import { ref, onMounted } from 'vue';
 import { obtenerkardex, eliminarKardex } from '@/backend/services/api';
 import AltaKardex from './Alta-Kardex/Alta-Kardex.vue';
+import { useToast } from 'vue-toast-notification'; // Importa useToast
+import 'vue-toast-notification/dist/theme-sugar.css'; // Importa el tema de notificaciones
 
-const Kardex = ref([]);  // Almacenará los usuarios obtenidos de la API
+const Kardex = ref([]);  // Almacenará los Kardex obtenidos de la API
 const error = ref('');  // Para manejar posibles errores
+const toast = useToast(); // Inicializa el toast
 
-// Obtener los kardex cuando el componente se monta
+// Obtener los Kardex cuando el componente se monta
 onMounted(async () => {
   try {
     Kardex.value = await obtenerkardex();
-    console.log('Kardex obtenidos:', Kardex.value);  // Para verificar los datos en la consola
+    console.log('Kardex obtenidos:', Kardex.value);
   } catch (err) {
     error.value = 'No se pudieron cargar los Kardex. Intenta más tarde.';
     console.error('Error al obtener los Kardex:', err);
   }
 });
+
 // Estado reactivo para mostrar el formulario
 const mostrarFormulario = ref(false);
 
@@ -24,6 +28,7 @@ const toggleFormulario = () => {
   mostrarFormulario.value = !mostrarFormulario.value;
 };
 
+// Función para eliminar un Kardex
 const eliminarKardexPorId = async (idKardex) => {
   if (!confirm('¿Estás seguro de que quieres eliminar este Kardex?')) {
     return; // Si el usuario cancela, no hace nada
@@ -32,10 +37,20 @@ const eliminarKardexPorId = async (idKardex) => {
   try {
     await eliminarKardex(idKardex); // Llama a la función del backend
     Kardex.value = Kardex.value.filter(kardex => kardex.Id_Kardex !== idKardex); // Actualiza la lista
-    alert('Kardex eliminado correctamente');
+
+    // Mostrar notificación de éxito
+    toast.success('Kardex eliminado correctamente.', {
+      position: 'top-right', // Posición de la notificación
+      duration: 5000, // Duración en milisegundos
+    });
   } catch (err) {
     console.error('Error al eliminar el Kardex:', err);
-    alert('No se pudo eliminar el Kardex. Intenta más tarde.');
+
+    // Mostrar notificación de error
+    toast.error('No se pudo eliminar el Kardex. Intenta más tarde.', {
+      position: 'top-right',
+      duration: 5000,
+    });
   }
 };
 </script>

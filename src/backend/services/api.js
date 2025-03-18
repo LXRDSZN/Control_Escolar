@@ -273,6 +273,69 @@ export const eliminarHorario = async (idhorario) => {
     throw error;
   }
 };
+// Función para eliminar un Alumno
+export const eliminarAlumno = async (idalumno) => {
+  try {
+    const response = await axios.post(`http://localhost:5000/api/auth/bajaalumno`, {
+      idalumno, // Envía el Id_Kardex en el cuerpo de la solicitud
+    });
+
+    // Devuelve la respuesta de la API, que puede incluir un mensaje de éxito
+    return response.data;
+  } catch (error) {
+    console.error('Error al eliminar el Alumno:', error);
+    // Lanza el error para ser manejado en el componente Vue
+    throw error;
+  }
+};
+// Función para eliminar un Docente
+export const eliminarDocente = async (iddocente) => {
+  try {
+    const response = await axios.post(`http://localhost:5000/api/auth/bajadocente`, {
+      iddocente, // Envía el Id_Kardex en el cuerpo de la solicitud
+    });
+
+    // Devuelve la respuesta de la API, que puede incluir un mensaje de éxito
+    return response.data;
+  } catch (error) {
+    console.error('Error al eliminar el Docente:', error);
+    // Lanza el error para ser manejado en el componente Vue
+    throw error;
+  }
+};
+// Función para eliminar una Materia
+export const eliminarMateria = async (idmateria) => {
+  try {
+    const response = await axios.post(`http://localhost:5000/api/auth/bajamateria`, {
+      idmateria, // Envía el Id_Kardex en el cuerpo de la solicitud
+    });
+
+    // Devuelve la respuesta de la API, que puede incluir un mensaje de éxito
+    return response.data;
+  } catch (error) {
+    console.error('Error al eliminar la Materia:', error);
+    // Lanza el error para ser manejado en el componente Vue
+    throw error;
+  }
+};
+
+
+// Función para eliminar un Grupo
+export const eliminarGrupo = async (idgrupo) => {
+  try {
+    const response = await axios.post(`http://localhost:5000/api/auth/bajagrupo`, {
+      idgrupo, // Envía el Id_Kardex en el cuerpo de la solicitud
+    });
+
+    // Devuelve la respuesta de la API, que puede incluir un mensaje de éxito
+    return response.data;
+  } catch (error) {
+    console.error('Error al eliminar el Grupo:', error);
+    // Lanza el error para ser manejado en el componente Vue
+    throw error;
+  }
+};
+
 
 
 
@@ -282,3 +345,98 @@ export const eliminarHorario = async (idhorario) => {
 #                          api para realizacion de actualizar                                    #
 ##################################################################################################
 */
+
+export const actualizarGrupo = async (idGrupo, turno) => {
+  try {
+    const response = await axios.put(`http://localhost:5000/api/auth/modificargrupo`, {
+      idGrupo, // Envía el Id_Grupo en el cuerpo de la solicitud
+      turno,   // Envía el nuevo Turno en el cuerpo de la solicitud
+    });
+
+    // Devuelve la respuesta de la API, que puede incluir un mensaje de éxito
+    return response.data;
+  } catch (error) {
+    console.error('Error al modificar el grupo:', error);
+    // Lanza el error para ser manejado en el componente Vue
+    throw error;
+  }
+};
+
+// Función para actualizar los datos de un alumno
+export const actualizarAlumno = async (
+  no_control,
+  nombre,
+  apellidoP,
+  apellidoM,
+  fechaNacimiento,
+  telefono,
+  correo,
+  nss,
+  grupo,
+  semestre,
+  carrera,
+  direccion,
+  promAcumulado,
+  sexo
+) => {
+  try {
+    const response = await axios.put(`http://localhost:5000/api/auth/modificaralumno/${no_control}`, {
+      nombre,
+      apellidoP,
+      apellidoM,
+      fechaNacimiento,
+      telefono,
+      correo,
+      nss,
+      grupo,
+      semestre,
+      carrera,
+      direccion,
+      promAcumulado,
+      sexo
+    });
+
+    return response.data; // Devuelve la respuesta de la API
+  } catch (error) {
+    console.error('Error al actualizar los datos del alumno:', error);
+    throw error; // Lanza el error para manejarlo en el componente
+  }
+};
+
+
+// Función para actualizar los datos de un docente
+export const actualizarDocente = async (
+  id_profesor, 
+  nombre,
+  apellidoP,
+  apellidoM,
+  fechaNac,
+  rfc,
+  telefono,
+  correo,
+  direccion,
+  nss,
+  especialidad,
+  sexo
+) => {
+  try {
+    const response = await axios.put(`http://localhost:5000/api/auth/modificardocente/${id_profesor}`, {
+      nombre,
+      apellidoP,
+      apellidoM,
+      fechaNac,
+      rfc,
+      telefono,
+      correo,
+      direccion,
+      nss,
+      especialidad,
+      sexo
+    });
+
+    return response.data; // Devuelve la respuesta de la API
+  } catch (error) {
+    console.error('Error al actualizar los datos del docente:', error);
+    throw error; // Lanza el error para manejarlo en el componente
+  }
+};

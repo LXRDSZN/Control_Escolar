@@ -1,10 +1,17 @@
 <script setup>
-import { obtenergrupos } from '@/backend/services/api';
+import { obtenergrupos, eliminarGrupo, actualizarGrupo } from '@/backend/services/api';  // Importamos las funciones necesarias
 import { ref, onMounted } from 'vue';
-import AltaGrupos from './Alta-Grupos/Alta-Grupos.vue'; // Importa el componente de alta de grupos
+import AltaGrupos from './Alta-Grupos/Alta-Grupos.vue';
+import ActualizarGrupos from './Actualizar-Grupos/Actualizar-Grupos.vue';
+import { useToast } from 'vue-toast-notification'; // Importa useToast
+import 'vue-toast-notification/dist/theme-sugar.css'; // Importa el tema de notificaciones
 
 const Grupo = ref([]);  // Almacenará los grupos obtenidos de la API
 const error = ref('');  // Para manejar posibles errores
+const toast = useToast(); // Inicializa el toast
+const grupoEditando = ref(null);  // Almacenará el grupo que se está editando
+const mostrarFormulario = ref(false); // Estado reactivo para mostrar el formulario de agregar
+const mostrarFormularioActualizar = ref(false); // Estado reactivo para mostrar el formulario de actualización
 
 // Obtener los grupos cuando el componente se monta
 onMounted(async () => {
@@ -17,24 +24,79 @@ onMounted(async () => {
   }
 });
 
-// Estado reactivo para mostrar el formulario
-const mostrarFormulario = ref(false);
+// Función para mostrar el formulario de agregar
+const agregarGrupo = () => {
+  grupoEditando.value = null; // Limpia el grupo seleccionado
+  mostrarFormulario.value = true; // Muestra el formulario
+  mostrarFormularioActualizar.value = false; // Oculta el formulario de actualización
+};
 
-// Función para cambiar el estado y mostrar el formulario
-const toggleFormulario = () => {
-  mostrarFormulario.value = !mostrarFormulario.value;
+// Función para cancelar el formulario
+const cancelarFormulario = () => {
+  mostrarFormulario.value = false;
+  mostrarFormularioActualizar.value = false;
+  grupoEditando.value = null;
 };
 
 // Función para eliminar un grupo
 const eliminarGrupoPorId = async (idGrupo) => {
+  if (!confirm('¿Estás seguro de que quieres eliminar este grupo?')) {
+    return; // Si el usuario cancela, no hace nada
+  }
+
   try {
-    const result = await eliminarGrupo(idGrupo);  // Llamada a la función de eliminar
-    console.log(result);  // Mensaje de éxito
-    // Eliminamos el grupo de la lista en la vista
-    Grupo.value = Grupo.value.filter(grupo => grupo.Id_Grupo !== idGrupo);
+    await eliminarGrupo(idGrupo);  // Llamada a la función de eliminar
+    Grupo.value = Grupo.value.filter(grupo => grupo.Id_Grupo !== idGrupo); // Actualiza la lista
+
+    // Mostrar notificación de éxito
+    toast.success('Grupo eliminado correctamente.', {
+      position: 'top-right', // Posición de la notificación
+      duration: 5000, // Duración en milisegundos
+    });
   } catch (err) {
-    error.value = 'No se pudo eliminar el grupo. Intenta más tarde.';
     console.error('Error al eliminar el grupo:', err);
+
+    // Mostrar notificación de error
+    toast.error('No se pudo eliminar el grupo. Intenta más tarde.', {
+      position: 'top-right',
+      duration: 5000,
+    });
+  }
+};
+
+// Función para modificar un grupo
+const modificarGrupo = (idGrupo) => {
+  const grupo = Grupo.value.find(grupo => grupo.Id_Grupo === idGrupo);
+  if (grupo) {
+    grupoEditando.value = grupo; // Establece el grupo que se está editando
+    mostrarFormularioActualizar.value = true; // Muestra el formulario de actualización
+    mostrarFormulario.value = false; // Oculta el formulario de agregar
+  }
+};
+
+// Función para guardar los cambios después de actualizar
+const guardarCambiosActualizados = async (grupoActualizado) => {
+  try {
+    await actualizarGrupo(grupoActualizado.Id_Grupo, grupoActualizado.Turno); // Llama a la API para actualizar
+    Grupo.value = Grupo.value.map(grupo => 
+      grupo.Id_Grupo === grupoActualizado.Id_Grupo ? grupoActualizado : grupo
+    ); // Actualiza la lista local
+
+    // Mostrar notificación de éxito
+    toast.success('Grupo actualizado correctamente.', {
+      position: 'top-right',
+      duration: 5000,
+    });
+
+    cancelarFormulario(); // Cierra el formulario
+  } catch (err) {
+    console.error('Error al actualizar el grupo:', err);
+
+    // Mostrar notificación de error
+    toast.error('No se pudo actualizar el grupo. Intenta más tarde.', {
+      position: 'top-right',
+      duration: 5000,
+    });
   }
 };
 </script>
@@ -46,16 +108,29 @@ const eliminarGrupoPorId = async (idGrupo) => {
       <div class="header-container">
         <h1>Lista de Grupos</h1>
         <!-- Botón que cambia la visibilidad del formulario -->
-        <button @click="toggleFormulario" class="btn btn-add">
+        <button @click="agregarGrupo" class="btn btn-add" v-if="!mostrarFormulario && !mostrarFormularioActualizar">
           Agregar Grupo
         </button>
       </div>
 
       <!-- Mostrar el formulario de alta solo si 'mostrarFormulario' es verdadero -->
-      <AltaGrupos v-if="mostrarFormulario" @grupoRegistrado="grupo => Grupo.push(grupo)" />
+      <AltaGrupos
+        v-if="mostrarFormulario"
+        :grupo="grupoEditando"
+        @guardar="guardarCambios"
+        @cancelar="cancelarFormulario"
+      />
+
+      <!-- Mostrar el formulario de actualización si 'mostrarFormularioActualizar' es verdadero -->
+      <ActualizarGrupos
+        v-if="mostrarFormularioActualizar"
+        :grupo="grupoEditando"
+        @guardar="guardarCambiosActualizados"
+        @cancelar="cancelarFormulario"
+      />
 
       <!-- Tabla de grupos -->
-      <table class="grupos-table" v-if="!mostrarFormulario">
+      <table class="grupos-table" v-if="!mostrarFormulario && !mostrarFormularioActualizar">
         <thead>
           <tr>
             <th>Id_Grupo</th>

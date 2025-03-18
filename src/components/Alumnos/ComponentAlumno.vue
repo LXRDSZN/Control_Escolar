@@ -1,10 +1,17 @@
 <script setup>
-import { obteneralumnos } from '@/backend/services/api';  // Importamos la función de eliminar
+import { obteneralumnos, eliminarAlumno } from '@/backend/services/api'; // Importamos la función de obtener y eliminar
 import { ref, onMounted } from 'vue';
 import AltaAlumnos from './Alta-Alumnos/Alta-Alumnos.vue';
+import ActualizarAlumnos from './Actualizar-Alumnos/Actualizar-Alumnos.vue'; // Importar el componente de actualización
+import { useToast } from 'vue-toast-notification'; // Importa useToast
+import 'vue-toast-notification/dist/theme-sugar.css'; // Importa el tema de notificaciones
 
-const Alumnos = ref([]);  // Almacenará los usuarios obtenidos de la API
+const Alumnos = ref([]);  // Almacenará los alumnos obtenidos de la API
 const error = ref('');  // Para manejar posibles errores
+const toast = useToast(); // Inicializa el toast
+const alumnoEditando = ref(null);  // Almacenará el alumno que se está editando
+const mostrarFormulario = ref(false); // Estado reactivo para mostrar el formulario de agregar
+const mostrarFormularioActualizar = ref(false); // Estado reactivo para mostrar el formulario de actualización
 
 // Obtener los alumnos cuando el componente se monta
 onMounted(async () => {
@@ -17,26 +24,75 @@ onMounted(async () => {
   }
 });
 
-// Estado reactivo para mostrar el formulario
-const mostrarFormulario = ref(false);
-
-// Función para cambiar el estado y mostrar el formulario
-const toggleFormulario = () => {
-  mostrarFormulario.value = !mostrarFormulario.value;
+// Función para mostrar el formulario de agregar
+const agregarAlumno = () => {
+  alumnoEditando.value = null; // Limpia el alumno seleccionado
+  mostrarFormulario.value = true; // Muestra el formulario de agregar
+  mostrarFormularioActualizar.value = false; // Oculta el formulario de actualización
 };
+
+// Función para cancelar el formulario
+const cancelarFormulario = () => {
+  mostrarFormulario.value = false;
+  mostrarFormularioActualizar.value = false;
+  alumnoEditando.value = null;
+};
+
 // Función para eliminar un alumno
 const eliminarAlumnoPorId = async (noControl) => {
+  if (!confirm('¿Estás seguro de que quieres eliminar este alumno?')) {
+    return; // Si el usuario cancela, no hace nada
+  }
+
   try {
-    const result = await eliminarAlumno(noControl);  // Llamada a la función de eliminar
-    console.log(result);  // Mensaje de éxito
-    // Eliminamos el alumno de la lista en la vista
-    Alumnos.value = Alumnos.value.filter(alumno => alumno.No_Control !== noControl);
+    await eliminarAlumno(noControl);  // Llamada a la función de eliminar
+    Alumnos.value = Alumnos.value.filter(alumno => alumno.No_Control !== noControl); // Actualiza la lista
+
+    // Mostrar notificación de éxito
+    toast.success('Alumno eliminado correctamente.', {
+      position: 'top-right', // Posición de la notificación
+      duration: 5000, // Duración en milisegundos
+    });
   } catch (err) {
-    error.value = 'No se pudo eliminar el alumno. Intenta más tarde.';
     console.error('Error al eliminar el alumno:', err);
+
+    // Mostrar notificación de error
+    toast.error('No se pudo eliminar el alumno. Intenta más tarde.', {
+      position: 'top-right',
+      duration: 5000,
+    });
   }
 };
+
+// Función para modificar un alumno
+const modificarAlumno = (noControl) => {
+  const alumno = Alumnos.value.find(alumno => alumno.No_Control === noControl);
+  if (alumno) {
+    alumnoEditando.value = alumno; // Establece el alumno que se está editando
+    mostrarFormularioActualizar.value = true; // Muestra el formulario de actualización
+    mostrarFormulario.value = false; // Oculta el formulario de agregar
+  }
+};
+
+// Función para guardar los cambios después de actualizar
+const guardarCambiosActualizados = async (alumnoActualizado) => {
+  if (!alumnoActualizado) {
+    console.error('No se pudo obtener el alumno a actualizar');
+    return;
+  }
+  try {
+    // Enviar la solicitud de actualización aquí
+  } catch (err) {
+    console.error('Error al actualizar el alumno:', err);
+    toast.error('No se pudo actualizar el alumno. Intenta más tarde.', {
+      position: 'top-right',
+      duration: 5000,
+    });
+  }
+};
+
 </script>
+
 <template>
   <div class="syste-panel">
     <div class="panel">
@@ -44,16 +100,28 @@ const eliminarAlumnoPorId = async (noControl) => {
       <div class="header-container">
         <h1>Lista de Alumnos</h1>
         <!-- Botón que cambia la visibilidad del formulario -->
-        <button @click="toggleFormulario" class="btn btn-add">
+        <button @click="agregarAlumno" class="btn btn-add" v-if="!mostrarFormulario && !mostrarFormularioActualizar">
           Agregar Alumno
         </button>
       </div>
 
       <!-- Mostrar el formulario de alta solo si 'mostrarFormulario' es verdadero -->
-      <AltaAlumnos v-if="mostrarFormulario" @alumnoRegistrado="alumno => Alumnos.push(alumno)" />
+      <AltaAlumnos
+        v-if="mostrarFormulario"
+        @alumnoRegistrado="alumno => Alumnos.push(alumno)"
+        @cancelar="cancelarFormulario"
+      />
+
+      <!-- Mostrar el formulario de actualización si 'mostrarFormularioActualizar' es verdadero -->
+      <ActualizarAlumnos
+        v-if="mostrarFormularioActualizar"
+        :alumno="alumnoEditando"
+        @guardar="guardarCambiosActualizados"
+        @cancelar="cancelarFormulario"
+      />
 
       <!-- Tabla de alumnos -->
-      <table class="alumnos-table" v-if="!mostrarFormulario">
+      <table class="alumnos-table" v-if="!mostrarFormulario && !mostrarFormularioActualizar">
         <thead>
           <tr>
             <th>No. Control</th>
@@ -85,7 +153,6 @@ const eliminarAlumnoPorId = async (noControl) => {
   </div>
 </template>
 
-
 <style scoped>
 /* Contenedor principal del panel, para que ocupe toda la pantalla */
 .syste-panel {
@@ -109,25 +176,22 @@ const eliminarAlumnoPorId = async (noControl) => {
   max-height: 100%;
 }
 
-
 .alumnos-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-  }
-  
-  .alumnos-table th, .alumnos-table td {
-    padding: 10px;
-    border: 1px solid #ccc;
-    text-align: left;
-  }
-  
-.alumnos-table th {
-    background-color: #041d38;
-    color: #ffff;
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
 }
-  
 
+.alumnos-table th, .alumnos-table td {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+
+.alumnos-table th {
+  background-color: #041d38;
+  color: #ffff;
+}
 
 /* Media query para pantallas pequeñas */
 @media (max-width: 1200px) {
@@ -147,7 +211,6 @@ const eliminarAlumnoPorId = async (noControl) => {
     grid-template-columns: 1fr; /* 1 columna */
   }
 }
-
 
 /* Columna de acciones: botones alineados */
 .actions {
@@ -173,7 +236,6 @@ const eliminarAlumnoPorId = async (noControl) => {
   background-color: #4caf50;
   color: white;
   width: 200px;
-  
 }
 
 .btn-add:hover {
@@ -197,11 +259,11 @@ const eliminarAlumnoPorId = async (noControl) => {
 .btn-delete:hover {
   background-color: #d32f2f;
 }
+
 /* Contenedor de encabezado y botón */
 .header-container {
   display: flex;
   justify-content: space-between;  /* Alinea el contenido a los extremos */
   align-items: center;  /* Alinea verticalmente */
 }
-
 </style>

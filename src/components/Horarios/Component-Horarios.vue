@@ -2,9 +2,12 @@
 import { ref, onMounted } from 'vue';
 import { obtenerhorarios, eliminarHorario } from '@/backend/services/api'; // Importa eliminarHorario
 import AltaHorarios from './Alta-Horarios/Alta-Horarios.vue';
+import { useToast } from 'vue-toast-notification'; // Importa useToast
+import 'vue-toast-notification/dist/theme-sugar.css'; // Importa el tema de notificaciones
 
 const Horario = ref([]);  // Almacenará los horarios obtenidos de la API
 const error = ref('');  // Para manejar posibles errores
+const toast = useToast(); // Inicializa el toast
 
 // Obtener los horarios cuando el componente se monta
 onMounted(async () => {
@@ -34,10 +37,20 @@ const eliminarHorarioPorId = async (idHorario) => {
   try {
     await eliminarHorario(idHorario); // Llama a la función del backend
     Horario.value = Horario.value.filter(horario => horario.Id_Horario !== idHorario); // Actualiza la lista
-    alert('Horario eliminado correctamente');
+
+    // Mostrar notificación de éxito
+    toast.success('Horario eliminado correctamente.', {
+      position: 'top-right', // Posición de la notificación
+      duration: 5000, // Duración en milisegundos
+    });
   } catch (err) {
     console.error('Error al eliminar el horario:', err);
-    alert('No se pudo eliminar el horario. Intenta más tarde.');
+
+    // Mostrar notificación de error
+    toast.error('No se pudo eliminar el horario. Intenta más tarde.', {
+      position: 'top-right',
+      duration: 5000,
+    });
   }
 };
 </script>

@@ -2,20 +2,20 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 //importamos modelos para Alumnos
 import { checkUserCredentials } from '../models/db.js';
-import { ConsultaAlumno, registrarAlumno} from '../models/Alumnos-CRUD/Alumnos.js';
+import { ConsultaAlumno, registrarAlumno, eliminarAlumno, actualizarAlumno} from '../models/Alumnos-CRUD/Alumnos.js';
 //Importamos Modelos para Docentes
-import { ConsultaDocente, registrarDocente } from '../models/Maestros-CRUD/Docentes-Consulta.js';
+import { ConsultaDocente, registrarDocente,eliminarDocente, actualizarDocente } from '../models/Maestros-CRUD/Docentes-Consulta.js';
 
 
 //Importamos modelos para Materias
-import { ConsultaMateria, registrarMateria } from '../models/Materias-CRUD/Materias-Consulta.js';
+import { ConsultaMateria, registrarMateria,eliminarMateria } from '../models/Materias-CRUD/Materias-Consulta.js';
 const router = express.Router();
 
 //importamos modelos para Horarios
 import { ConsultaHorario , registrarHorario, eliminarHorario} from '../models/Horarios-CRUD/Horarios-Consulta.js';
 
 //importamos modelos de grupo
-import { Consultagrupos, registrarGrupo } from '../models/Grupos-CRUD/Grupos-Consulta.js';
+import { Consultagrupos, registrarGrupo, eliminarGrupo,actualizarGrupo } from '../models/Grupos-CRUD/Grupos-Consulta.js';
 
 //imnpotamos modelos de KARDEX
 import { ConsultaKardex, registrarkardex, eliminarKardex } from '../models/Kardex-CRUD/Kardex-Consulta.js';
@@ -291,7 +291,7 @@ router.post('/auth/bajahorario', async (req, res) => {
   const { idhorario } = req.body; // Obtén el Id_Kardex desde el cuerpo de la solicitud
 
   try {
-    const result = await eliminarHorario(idhorario); // Llama a la función eliminarKardex
+    const result = await eliminarHorario(idhorario); // Llama a la función eliminarHorario
 
     if (result.affectedRows > 0) {
       return res.status(200).json({ message: 'Horario eliminado correctamente' });
@@ -303,11 +303,218 @@ router.post('/auth/bajahorario', async (req, res) => {
     return res.status(500).json({ message: 'Error del servidor', error });
   }
 });
+// Ruta para eliminar un Alumno
+router.post('/auth/bajaalumno', async (req, res) => {
+  const { idalumno } = req.body; // Obtén el Id_Kardex desde el cuerpo de la solicitud
+
+  try {
+    const result = await eliminarAlumno(idalumno); // Llama a la función eliminaralumno
+
+    if (result.affectedRows > 0) {
+      return res.status(200).json({ message: 'Alumno eliminado correctamente' });
+    } else {
+      return res.status(400).json({ message: 'No se encontró el Alumno' });
+    }
+  } catch (error) {
+    console.error('Error al eliminar el Alumno:', error);
+    return res.status(500).json({ message: 'Error del servidor', error });
+  }
+});
+
+// Ruta para eliminar un Docente
+router.post('/auth/bajadocente', async (req, res) => {
+  const { iddocente } = req.body; // Obtén el Id_Kardex desde el cuerpo de la solicitud
+
+  try {
+    const result = await eliminarDocente(iddocente); // Llama a la función eliminaralumno
+
+    if (result.affectedRows > 0) {
+      return res.status(200).json({ message: 'Docente eliminado correctamente' });
+    } else {
+      return res.status(400).json({ message: 'No se encontró el Docente' });
+    }
+  } catch (error) {
+    console.error('Error al eliminar el Docente:', error);
+    return res.status(500).json({ message: 'Error del servidor', error });
+  }
+});
+
+// Ruta para eliminar una Materia
+router.post('/auth/bajamateria', async (req, res) => {
+  const { idmateria } = req.body; // Obtén el Id_Kardex desde el cuerpo de la solicitud
+
+  try {
+    const result = await eliminarMateria(idmateria); // Llama a la función eliminaralumno
+
+    if (result.affectedRows > 0) {
+      return res.status(200).json({ message: 'Materia eliminado correctamente' });
+    } else {
+      return res.status(400).json({ message: 'No se encontró el Materia' });
+    }
+  } catch (error) {
+    console.error('Error al eliminar el Materia:', error);
+    return res.status(500).json({ message: 'Error del servidor', error });
+  }
+});
+// Ruta para eliminar un Grupo
+router.post('/auth/bajagrupo', async (req, res) => {
+  const { idgrupo } = req.body; // Obtén el Id_Kardex desde el cuerpo de la solicitud
+
+  try {
+    const result = await eliminarGrupo(idgrupo); // Llama a la función eliminaralumno
+
+    if (result.affectedRows > 0) {
+      return res.status(200).json({ message: 'Grupo eliminado correctamente' });
+    } else {
+      return res.status(400).json({ message: 'No se encontró el Grupo' });
+    }
+  } catch (error) {
+    console.error('Error al eliminar el Materia:', error);
+    return res.status(500).json({ message: 'Error del servidor', error });
+  }
+});
 /*
 ##################################################################################################
 #                          Endpoint para Actualizar                                               #
 ##################################################################################################
 */
+
+// Ruta para modificar un grupo
+router.put('/auth/modificargrupo', async (req, res) => {
+  const { idGrupo, turno } = req.body; // Obtén el Id_Grupo y el nuevo Turno desde el cuerpo de la solicitud
+
+  // Validaciones básicas
+  if (!idGrupo || !turno) {
+    return res.status(400).json({ message: 'Faltan datos obligatorios (idGrupo o turno)' });
+  }
+
+  if (turno.length > 20) {
+    return res.status(400).json({ message: 'El turno no puede exceder los 20 caracteres' });
+  }
+
+  try {
+    const result = await actualizarGrupo(idGrupo, turno); // Llama a la función actualizarGrupo
+
+    if (result.affectedRows > 0) {
+      return res.status(200).json({ message: 'Grupo modificado correctamente' });
+    } else {
+      return res.status(400).json({ message: 'No se encontró el grupo' });
+    }
+  } catch (error) {
+    console.error('Error al modificar el grupo:', error);
+    return res.status(500).json({ message: 'Error del servidor', error });
+  }
+});
+
+
+// Ruta para modificar los datos del alumno
+router.put('/auth/modificaralumno/:no_control', async (req, res) => {
+  const { no_control } = req.params; // No_Control del alumno (recibido como parámetro en la URL)
+  const {
+    nombre,
+    apellidoP,
+    apellidoM,
+    fechaNacimiento,
+    telefono,
+    correo,
+    nss,
+    grupo,
+    semestre,
+    carrera,
+    direccion,
+    promAcumulado,
+    sexo
+  } = req.body; // Datos del alumno a actualizar recibidos en el cuerpo de la solicitud
+
+  try {
+    // Llamamos a la función que actualiza los datos del alumno
+    const updatedAlumno = await actualizarAlumno(
+      no_control,
+      nombre,
+      apellidoP,
+      apellidoM,
+      fechaNacimiento,
+      telefono,
+      correo,
+      nss,
+      grupo,
+      semestre,
+      carrera,
+      direccion,
+      promAcumulado,
+      sexo
+    );
+
+    if (updatedAlumno.success) {
+      return res.status(200).json({
+        success: true,
+        message: 'Datos del alumno actualizados con éxito'
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: updatedAlumno.message || 'No se pudo actualizar los datos del alumno'
+      });
+    }
+  } catch (error) {
+    console.error('Error al actualizar los datos del alumno:', error);
+    return res.status(500).json({ success: false, message: 'Error del servidor', error });
+  }
+});
+
+
+// Ruta para modificar los datos del docente
+router.put('/auth/modificardocente/:id_profesor', async (req, res) => {
+  const { id_profesor } = req.params; // No_Control del docente (recibido como parámetro en la URL)
+  const {
+  nombre,
+  apellidoP,
+  apellidoM,
+  fechaNac,
+  rfc,
+  telefono,
+  correo,
+  direccion,
+  nss,
+  especialidad,
+  sexo
+  } = req.body; // Datos del docentes a actualizar recibidos en el cuerpo de la solicitud
+
+  try {
+    // Llamamos a la función que actualiza los datos del docentes
+    const updatedDocente = await actualizarDocente(
+      id_profesor,
+      nombre,
+      apellidoP,
+      apellidoM,
+      fechaNac,
+      rfc,
+      telefono,
+      correo,
+      direccion,
+      nss,
+      especialidad,
+      sexo
+    );
+
+    if (updatedDocente.success) {
+      return res.status(200).json({
+        success: true,
+        message: 'Datos del docentes actualizados con éxito'
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: updatedDocente.message || 'No se pudo actualizar los datos del docentes'
+      });
+    }
+  } catch (error) {
+    console.error('Error al actualizar los datos del docentes:', error);
+    return res.status(500).json({ success: false, message: 'Error del servidor', error });
+  }
+});
+
+
 
 
 export default router;

@@ -27,3 +27,59 @@ export const registrarAlumno = async (no_control, nombre, apellido_p, apellido_m
     throw error; // Lanza el error para que se maneje en el controlador
   }
 };
+
+export const eliminarAlumno = async (idalumno) => {
+  const query = 'DELETE FROM ALUMNOS WHERE No_Control = ?;';
+
+  try {
+    const [result] = await connection.execute(query, [idalumno]);
+    return result; // Devuelve el resultado de la consulta
+  } catch (error) {
+    console.error('Error al eliminar el Kardex:', error);
+    throw error; // Lanza el error para que se maneje en la ruta
+  }
+};
+
+export const actualizarAlumno = async (
+  no_control, nombre, apellido_p, apellido_m, fecha_nacimiento, telefono,
+  correo, nss, grupo, semestre, carrera, direccion, prom_acumulado, sexo
+) => {
+  const query = `
+    UPDATE ALUMNOS
+    SET 
+      Nombre = ?, 
+      Apellido_P = ?, 
+      Apellido_M = ?, 
+      Fecha_Nacimiento = ?, 
+      Telefono = ?, 
+      Correo = ?, 
+      Nss = ?, 
+      Grupo = ?, 
+      Semestre = ?, 
+      Carrera = ?, 
+      Direccion = ?, 
+      Prom_Acumulado = ?, 
+      Sexo = ?
+    WHERE No_Control = ?
+  `;
+
+  try {
+    // Ejecutamos la consulta de actualización con los valores proporcionados
+    const [result] = await connection.execute(query, [
+      nombre, apellido_p, apellido_m, fecha_nacimiento, telefono, correo, 
+      nss, grupo, semestre, carrera, direccion, prom_acumulado, sexo, no_control
+    ]);
+
+    console.log('Resultado de la actualización:', result); // Agregar log para verificar el resultado
+
+    // Verificamos si se realizó la actualización
+    if (result.affectedRows > 0) {
+      return { success: true, message: 'Alumno actualizado correctamente' };
+    } else {
+      return { success: false, message: 'No se encontró el alumno o no se actualizó ningún registro' };
+    }
+  } catch (error) {
+    console.error('Error al actualizar el alumno:', error);
+    return { success: false, message: 'Error al actualizar el alumno', error };
+  }
+};

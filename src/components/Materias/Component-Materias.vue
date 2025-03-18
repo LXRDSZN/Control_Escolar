@@ -1,10 +1,14 @@
 <script setup>
-import { obtenermaterias } from '@/backend/services/api';
+import { obtenermaterias, eliminarMateria } from '@/backend/services/api';  // Importamos la función de eliminar
 import { ref, onMounted } from 'vue';
-import AltaMaterias from './Alta-Materias/Alta-Materias.vue'; // Importa el componente de alta de materias
+import AltaMaterias from './Alta-Materias/Alta-Materias.vue';
+
+import { useToast } from 'vue-toast-notification'; // Importa useToast
+import 'vue-toast-notification/dist/theme-sugar.css'; // Importa el tema de notificaciones
 
 const Materias = ref([]);  // Almacenará las materias obtenidas de la API
 const error = ref('');  // Para manejar posibles errores
+const toast = useToast(); // Inicializa el toast
 
 // Obtener las materias cuando el componente se monta
 onMounted(async () => {
@@ -27,14 +31,27 @@ const toggleFormulario = () => {
 
 // Función para eliminar una materia
 const eliminarMateriaPorId = async (idMateria) => {
+  if (!confirm('¿Estás seguro de que quieres eliminar esta materia?')) {
+    return; // Si el usuario cancela, no hace nada
+  }
+
   try {
-    const result = await eliminarMateria(idMateria);  // Llamada a la función de eliminar
-    console.log(result);  // Mensaje de éxito
-    // Eliminamos la materia de la lista en la vista
-    Materias.value = Materias.value.filter(materia => materia.Id_Materia !== idMateria);
+    await eliminarMateria(idMateria);  // Llamada a la función de eliminar
+    Materias.value = Materias.value.filter(materia => materia.Id_Materia !== idMateria); // Actualiza la lista
+
+    // Mostrar notificación de éxito
+    toast.success('Materia eliminada correctamente.', {
+      position: 'top-right', // Posición de la notificación
+      duration: 5000, // Duración en milisegundos
+    });
   } catch (err) {
-    error.value = 'No se pudo eliminar la materia. Intenta más tarde.';
     console.error('Error al eliminar la materia:', err);
+
+    // Mostrar notificación de error
+    toast.error('No se pudo eliminar la materia. Intenta más tarde.', {
+      position: 'top-right',
+      duration: 5000,
+    });
   }
 };
 </script>

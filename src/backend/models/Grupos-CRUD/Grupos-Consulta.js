@@ -27,3 +27,32 @@ export const registrarGrupo = async (turno) => {
     throw error; // Lanza el error para que se maneje en el controlador
   }
 };
+
+
+export const eliminarGrupo = async (idgrupo) => {
+  const query = 'DELETE FROM GRUPO WHERE Id_Grupo = ?;';
+
+  try {
+    const [result] = await connection.execute(query, [idgrupo]);
+    return result; // Devuelve el resultado de la consulta
+  } catch (error) {
+    console.error('Error al eliminar el docente:', error);
+    throw error; // Lanza el error para que se maneje en la ruta
+  }
+};
+
+export const actualizarGrupo = async (idGrupo, turno) => {
+  const query = `
+    UPDATE GRUPO
+    SET Turno = ?
+    WHERE Id_Grupo = ?;
+  `;
+
+  try {
+    const [result] = await connection.execute(query, [turno, idGrupo]);
+    return result; // Devuelve el resultado de la consulta
+  } catch (error) {
+    console.error('Error al modificar el grupo:', error);
+    throw error; // Lanza el error para que se maneje en el controlador
+  }
+};
