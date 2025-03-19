@@ -440,3 +440,62 @@ export const actualizarDocente = async (
     throw error; // Lanza el error para manejarlo en el componente
   }
 };
+
+
+// Función para actualizar los datos de un docente
+export const actualizarMateria = async (
+      id_materia,
+      nombre,
+      creditos, 
+      semestre, 
+      departamento
+) => {
+  try {
+    const response = await axios.put(`http://localhost:5000/api/auth/modificarmateria/${id_materia}`, {
+      nombre,
+      creditos, 
+      semestre, 
+      departamento
+    });
+
+    return response.data; // Devuelve la respuesta de la API
+  } catch (error) {
+    console.error('Error al actualizar los datos de la materia:', error);
+    throw error; // Lanza el error para manejarlo en el componente
+  }
+};
+
+
+
+
+// Función para actualizar los datos de un docente
+export const actualizarHorario = async (
+  id_horario,
+  no_control,
+  id_profesor, 
+  id_grupo,
+  aula,
+  hora, 
+  dia,        
+  id_materia
+) => {
+try {
+  const response = await axios.put(`http://localhost:5000/api/auth/modificarhorario/${id_horario}`, {
+    
+    no_control,
+    id_profesor, 
+    id_grupo,
+    aula,
+    hora, 
+    dia,        
+  id_materia
+  });
+
+  return response.data; // Devuelve la respuesta de la API
+} catch (error) {
+  console.error('Error al actualizar los datos de la Horario:', error);
+  throw error; // Lanza el error para manejarlo en el componente
+}
+};
+
+

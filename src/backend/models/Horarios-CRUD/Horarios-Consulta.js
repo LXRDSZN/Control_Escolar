@@ -40,3 +40,51 @@ export const eliminarHorario = async (idhorario) => {
     throw error; // Lanza el error para que se maneje en la ruta
   }
 };
+
+export const actualizarHorario = async (
+  id_horario,
+  no_control,
+  id_profesor,
+  id_grupo,
+  aula,
+  hora,
+  dia,
+  id_materia
+) => {
+  try {
+    const query = `
+      UPDATE HORARIO
+      SET 
+        No_Control = ?, 
+        Id_Profesor = ?, 
+        Id_Grupo = ?, 
+        Aula = ?, 
+        Hora = ?, 
+        Dia = ?, 
+        Id_Materia = ?
+      WHERE Id_Horario = ?
+    `;
+
+    const values = [
+      no_control,
+      id_profesor,
+      id_grupo,
+      aula,
+      hora,
+      dia,
+      id_materia,
+      id_horario,
+    ];
+
+    const [result] = await connection.execute(query, values);
+
+    return {
+      success: true,
+      message: 'Horario actualizado correctamente',
+      data: result,
+    };
+  } catch (error) {
+    console.error('Error al actualizar el horario:', error);
+    throw error;
+  }
+};

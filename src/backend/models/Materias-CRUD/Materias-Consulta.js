@@ -39,3 +39,40 @@ export const eliminarMateria = async (idmateria) => {
     throw error; // Lanza el error para que se maneje en la ruta
   }
 };
+
+// QUERY PARA ACTUALIZAR MATERIAS
+export const actualizarMateria = async (
+  id_materia, nombre, creditos, semestre, departamento
+) => {
+  // Validaciones adicionales
+  if (!id_materia || !nombre || !creditos || !semestre || !departamento) {
+    return { success: false, message: 'Todos los campos son obligatorios' };
+  }
+
+  const query = `
+    UPDATE MATERIAS
+    SET 
+      Nombre = ?, 
+      Creditos = ?, 
+      Semestre = ?, 
+      Departamento = ?
+    WHERE Id_Materia = ?
+  `;
+
+  try {
+    const [result] = await connection.execute(query, [
+      nombre, creditos, semestre, departamento, id_materia
+    ]);
+
+    console.log('Resultado de la actualización:', result); // Agregar log para verificar el resultado
+
+    if (result.affectedRows > 0) {
+      return { success: true, message: 'Materia actualizada correctamente' };
+    } else {
+      return { success: false, message: 'No se encontró la materia o no se actualizó ningún registro' };
+    }
+  } catch (error) {
+    console.error('Error al actualizar la Materia:', error);
+    return { success: false, message: 'Error al actualizar la Materia', error };
+  }
+};

@@ -1,13 +1,17 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { obtenerhorarios, eliminarHorario } from '@/backend/services/api'; // Importa eliminarHorario
+import { obtenerhorarios, eliminarHorario } from '@/backend/services/api';
 import AltaHorarios from './Alta-Horarios/Alta-Horarios.vue';
-import { useToast } from 'vue-toast-notification'; // Importa useToast
-import 'vue-toast-notification/dist/theme-sugar.css'; // Importa el tema de notificaciones
+import ActualizarHorarios from './Atualizar-Horarios/Actualizar-Horarios.vue';
+import { useToast } from 'vue-toast-notification';
+import 'vue-toast-notification/dist/theme-sugar.css';
 
-const Horario = ref([]);  // Almacenará los horarios obtenidos de la API
-const error = ref('');  // Para manejar posibles errores
+const Horario = ref([]); // Almacenará los horarios obtenidos de la API
+const error = ref(''); // Para manejar posibles errores
 const toast = useToast(); // Inicializa el toast
+const horarioEditando = ref(null); // Almacena el horario que se está editando
+const mostrarFormulario = ref(false); // Para mostrar el formulario de alta
+const mostrarFormularioActualizar = ref(false); // Para mostrar el formulario de actualización
 
 // Obtener los horarios cuando el componente se monta
 onMounted(async () => {
@@ -20,12 +24,20 @@ onMounted(async () => {
   }
 });
 
-// Estado reactivo para mostrar el formulario
-const mostrarFormulario = ref(false);
-
-// Función para cambiar el estado y mostrar el formulario
+// Función para cambiar el estado y mostrar el formulario de alta
 const toggleFormulario = () => {
   mostrarFormulario.value = !mostrarFormulario.value;
+  mostrarFormularioActualizar.value = false; // Asegura que el formulario de actualización esté oculto
+};
+
+// Función para mostrar el formulario de actualización de horarios
+const modificarHorario = (idHorario) => {
+  const horario = Horario.value.find(horario => horario.Id_Horario === idHorario);
+  if (horario) {
+    horarioEditando.value = horario;
+    mostrarFormularioActualizar.value = true;
+    mostrarFormulario.value = false; // Asegura que el formulario de alta esté oculto
+  }
 };
 
 // Función para eliminar un horario
@@ -40,8 +52,8 @@ const eliminarHorarioPorId = async (idHorario) => {
 
     // Mostrar notificación de éxito
     toast.success('Horario eliminado correctamente.', {
-      position: 'top-right', // Posición de la notificación
-      duration: 5000, // Duración en milisegundos
+      position: 'top-right',
+      duration: 5000,
     });
   } catch (err) {
     console.error('Error al eliminar el horario:', err);
@@ -58,29 +70,33 @@ const eliminarHorarioPorId = async (idHorario) => {
 <template>
   <div class="syste-panel">
     <div class="panel">
-      <!-- Contenedor de encabezado y botón en Flexbox -->
       <div class="header-container">
-        <!-- Título "Lista de Horarios" (oculto cuando el formulario está visible) -->
-        <h1 v-if="!mostrarFormulario">Lista de Horarios</h1>
-        <!-- Botón que cambia la visibilidad del formulario (oculto cuando el formulario está visible) -->
-        <button
-          v-if="!mostrarFormulario"
+        <h1 v-if="!mostrarFormulario && !mostrarFormularioActualizar">Lista de Horarios</h1>
+        <button 
+          v-if="!mostrarFormulario && !mostrarFormularioActualizar"
           @click="toggleFormulario"
-          class="btn btn-add"
-        >
+          class="btn btn-add">
           Agregar Horario
         </button>
       </div>
 
-      <!-- Mostrar el formulario de alta solo si 'mostrarFormulario' es verdadero -->
-      <AltaHorarios
-        v-if="mostrarFormulario"
+      <!-- Formulario de alta -->
+      <AltaHorarios 
+        v-if="mostrarFormulario" 
         @horarioRegistrado="horario => Horario.push(horario)"
         @cancelar="toggleFormulario"
       />
 
-      <!-- Tabla de horarios (oculta cuando el formulario está visible) -->
-      <table class="horarios-table" v-if="!mostrarFormulario">
+      <!-- Formulario de actualización -->
+      <ActualizarHorarios
+        v-if="mostrarFormularioActualizar"
+        :horario="horarioEditando"
+        @guardar="guardarCambiosActualizados"
+        @cancelar="toggleFormulario"
+      />
+
+      <!-- Tabla de horarios -->
+      <table class="horarios-table" v-if="!mostrarFormulario && !mostrarFormularioActualizar">
         <thead>
           <tr>
             <th>Id_Horario</th>
@@ -95,7 +111,6 @@ const eliminarHorarioPorId = async (idHorario) => {
           </tr>
         </thead>
         <tbody>
-          <!-- Iteramos sobre los horarios y mostramos cada uno en una fila -->
           <tr v-for="horario in Horario" :key="horario.Id_Horario">
             <td>{{ horario.Id_Horario }}</td>
             <td>{{ horario.No_Control }}</td>
@@ -106,14 +121,24 @@ const eliminarHorarioPorId = async (idHorario) => {
             <td>{{ horario.Dia }}</td>
             <td>{{ horario.Id_Materia }}</td>
             <td class="actions">
-              <button @click="modificarHorario(horario.Id_Horario)" class="btn btn-modify">Modificar</button>
-              <button @click="eliminarHorarioPorId(horario.Id_Horario)" class="btn btn-delete">Eliminar</button>            </td>
+              <button 
+                @click="modificarHorario(horario.Id_Horario)" 
+                class="btn btn-modify">
+                Modificar
+              </button>
+              <button 
+                @click="eliminarHorarioPorId(horario.Id_Horario)" 
+                class="btn btn-delete">
+                Eliminar
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 </template>
+
 
 <style scoped>
 /* Contenedor principal del panel, para que ocupe toda la pantalla */

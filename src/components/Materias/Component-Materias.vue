@@ -2,13 +2,16 @@
 import { obtenermaterias, eliminarMateria } from '@/backend/services/api';  // Importamos la función de eliminar
 import { ref, onMounted } from 'vue';
 import AltaMaterias from './Alta-Materias/Alta-Materias.vue';
-
+import ActualizarMaterias from './Actualizar-Materias/Actualizar-Materias.vue';
 import { useToast } from 'vue-toast-notification'; // Importa useToast
 import 'vue-toast-notification/dist/theme-sugar.css'; // Importa el tema de notificaciones
 
 const Materias = ref([]);  // Almacenará las materias obtenidas de la API
 const error = ref('');  // Para manejar posibles errores
 const toast = useToast(); // Inicializa el toast
+const materiaEditando = ref(null);  // Almacena la materia que se está editando
+const mostrarFormulario = ref(false); // Para mostrar el formulario de agregar
+const mostrarFormularioActualizar = ref(false); // Para mostrar el formulario de actualización
 
 // Obtener las materias cuando el componente se monta
 onMounted(async () => {
@@ -21,15 +24,21 @@ onMounted(async () => {
   }
 });
 
-// Estado reactivo para mostrar el formulario
-const mostrarFormulario = ref(false);
-
-// Función para cambiar el estado y mostrar el formulario
-const toggleFormulario = () => {
-  mostrarFormulario.value = !mostrarFormulario.value;
+// Mostrar formulario de alta
+const agregarMateria = () => {
+  materiaEditando.value = null;
+  mostrarFormulario.value = true;
+  mostrarFormularioActualizar.value = false;
 };
 
-// Función para eliminar una materia
+// Cancelar formularios
+const cancelarFormulario = () => {
+  mostrarFormulario.value = false;
+  mostrarFormularioActualizar.value = false;
+  materiaEditando.value = null;
+};
+
+// Eliminar materia por ID
 const eliminarMateriaPorId = async (idMateria) => {
   if (!confirm('¿Estás seguro de que quieres eliminar esta materia?')) {
     return; // Si el usuario cancela, no hace nada
@@ -54,25 +63,65 @@ const eliminarMateriaPorId = async (idMateria) => {
     });
   }
 };
+
+// Modificar materia
+const modificarMateria = (idMateria) => {
+  const materia = Materias.value.find(materia => materia.Id_Materia === idMateria);
+  if (materia) {
+    materiaEditando.value = materia;
+    mostrarFormularioActualizar.value = true;
+    mostrarFormulario.value = false;
+  }
+};
+
+// Guardar cambios después de actualizar
+const guardarCambiosActualizados = async (materiaActualizada) => {
+  if (!materiaActualizada) {
+    console.error('No se pudo obtener la materia a actualizar');
+    return;
+  }
+  try {
+    // Enviar la solicitud de actualización aquí
+  } catch (err) {
+    console.error('Error al actualizar la materia:', err);
+    toast.error('No se pudo actualizar la materia. Intenta más tarde.', {
+      position: 'top-right',
+      duration: 5000,
+    });
+  }
+};
 </script>
 
 <template>
   <div class="syste-panel">
     <div class="panel">
-      <!-- Contenedor de encabezado y botón en Flexbox -->
       <div class="header-container">
         <h1>Lista de Materias</h1>
-        <!-- Botón que cambia la visibilidad del formulario -->
-        <button @click="toggleFormulario" class="btn btn-add">
+        <button 
+          @click="agregarMateria" 
+          class="btn btn-add" 
+          v-if="!mostrarFormulario && !mostrarFormularioActualizar">
           Agregar Materia
         </button>
       </div>
 
-      <!-- Mostrar el formulario de alta solo si 'mostrarFormulario' es verdadero -->
-      <AltaMaterias v-if="mostrarFormulario" @materiaRegistrada="materia => Materias.push(materia)" />
+      <!-- Formulario de alta -->
+      <AltaMaterias 
+        v-if="mostrarFormulario" 
+        @materiaRegistrada="materia => Materias.push(materia)"
+        @cancelar="cancelarFormulario"
+      />
+
+      <!-- Formulario de actualización -->
+      <ActualizarMaterias
+        v-if="mostrarFormularioActualizar"
+        :materia="materiaEditando"
+        @guardar="guardarCambiosActualizados"
+        @cancelar="cancelarFormulario"
+      />
 
       <!-- Tabla de materias -->
-      <table class="materias-table" v-if="!mostrarFormulario">
+      <table class="materias-table" v-if="!mostrarFormulario && !mostrarFormularioActualizar">
         <thead>
           <tr>
             <th>Id_Materia</th>
@@ -84,7 +133,6 @@ const eliminarMateriaPorId = async (idMateria) => {
           </tr>
         </thead>
         <tbody>
-          <!-- Iteramos sobre las materias y mostramos cada una en una fila -->
           <tr v-for="materia in Materias" :key="materia.Id_Materia">
             <td>{{ materia.Id_Materia }}</td>
             <td>{{ materia.Nombre }}</td>
@@ -92,8 +140,16 @@ const eliminarMateriaPorId = async (idMateria) => {
             <td>{{ materia.Semestre }}</td>
             <td>{{ materia.Departamento }}</td>
             <td class="actions">
-              <button @click="modificarMateria(materia.Id_Materia)" class="btn btn-modify">Modificar</button>
-              <button @click="eliminarMateriaPorId(materia.Id_Materia)" class="btn btn-delete">Eliminar</button>
+              <button 
+                @click="modificarMateria(materia.Id_Materia)" 
+                class="btn btn-modify">
+                Modificar
+              </button>
+              <button 
+                @click="eliminarMateriaPorId(materia.Id_Materia)" 
+                class="btn btn-delete">
+                Eliminar
+              </button>
             </td>
           </tr>
         </tbody>

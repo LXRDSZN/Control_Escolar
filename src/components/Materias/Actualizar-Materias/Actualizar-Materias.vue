@@ -1,11 +1,82 @@
 <script setup>
+import { ref } from 'vue'; // Variables reactivas
+import { useToast } from 'vue-toast-notification'; // Notificaciones
+import 'vue-toast-notification/dist/theme-sugar.css'; // Estilo de notificaciones
+import { actualizarMateria } from '@/backend/services/api';
+// Props: Recibe el alumno que se está editando
+const props = defineProps({
+  materia: {
+    type: Object,
+    required: true,
+  },
+});
+const emit = defineEmits(['guardar', 'cancelar']);
+
+const idmateria = ref (props.materia.Id_Materia || '');
+const nombre = ref (props.materia.Nombre || '');
+const creditos = ref (props.materia.Creditos || '');
+const semestre = ref (props.materia.Semestre || '');
+const departamento = ref (props.materia.Departamento || '');
+
+
+// Inicializa el toast para notificaciones
+const toast = useToast();
+
+// Función para modificar las Materias
+const modificarMateria = async () => {
+  // Validaciones
+  if (!idmateria.value || !nombre.value || !creditos.value || !semestre.value || !departamento.value ) {
+    toast.error('Por favor, completa todos los campos del formulario.', {
+      position: 'top-right',
+      duration: 5000,
+      dismissible: true,
+    });
+    return;
+  }
+  try {
+    // Llamada a la API para modificar el alumno
+    const response = await actualizarMateria(
+        idmateria.value,
+        nombre.value,
+        creditos.value,
+        semestre.value,
+        departamento.value
+    );
+
+    // Verificar si la respuesta es exitosa
+    if (response.success) {
+      toast.success('Datos de la Materia actualizados correctamente.', {
+        position: 'top-right',
+        duration: 5000,
+        dismissible: true,
+      });
+      setTimeout(() => {
+        window.location.href = `/Materias`; // Redirigir a la página del panel
+      }, 750);
+      emit('guardar', response.data); // Emitir el evento 'guardar' al componente padre
+    } else {
+      toast.error(response.message || 'Hubo un error al actualizar los datos de la Materia.', {
+        position: 'top-right',
+        duration: 5000,
+        dismissible: true,
+      });
+    }
+  } catch (error) {
+    toast.error('Ocurrió un error al procesar la solicitud.', {
+      position: 'top-right',
+      duration: 5000,
+      dismissible: true,
+    });
+    console.error('Error al modificar la Materia:', error);
+  }
+};
 
 </script>
 
 <template>
   <div class="alta-materia-container">
     <h1>Registrar Nueva Materia</h1>
-    <form @submit.prevent="registrarMateria">
+    <form @submit.prevent="modificarMateria">
       <div class="form-group">
         <label for="id_materia">ID Materia:</label>
         <input type="text" id="id_materia" v-model="id_materia" placeholder="ID Materia" />
