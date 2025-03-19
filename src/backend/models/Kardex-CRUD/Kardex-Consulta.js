@@ -40,3 +40,41 @@ export const eliminarKardex = async (idKardex) => {
     throw error; // Lanza el error para que se maneje en la ruta
   }
 };
+
+
+export const actualizarKardex = async (
+  id_kardex,
+  no_control,
+  id_materia,
+  promedio,
+
+) => {
+  try {
+    const query = `
+      UPDATE KARDEX
+      SET 
+        No_Control = ?, 
+        Id_Materia = ?, 
+        Promedio = ? 
+      WHERE Id_Kardex = ?
+    `;
+
+    const values = [
+      no_control,
+      promedio,
+      id_materia,
+      id_kardex,
+    ];
+
+    const [result] = await connection.execute(query, values);
+
+    return {
+      success: true,
+      message: 'Kardex actualizado correctamente',
+      data: result,
+    };
+  } catch (error) {
+    console.error('Error al actualizar el horario:', error);
+    throw error;
+  }
+};

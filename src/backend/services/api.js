@@ -468,7 +468,7 @@ export const actualizarMateria = async (
 
 
 
-// Función para actualizar los datos de un docente
+// Función para actualizar los datos de un horario
 export const actualizarHorario = async (
   id_horario,
   no_control,
@@ -498,4 +498,26 @@ try {
 }
 };
 
+
+// Función para actualizar los datos de un kardex
+export const actualizarkardex = async (
+  id_kardex,
+  no_control,
+  id_materia,
+  promedio,
+) => {
+try {
+  const response = await axios.put(`http://localhost:5000/api/auth/modificarkardex/${id_kardex}`, {
+    
+    no_control,
+    id_materia,
+    promedio,
+  });
+
+  return response.data; // Devuelve la respuesta de la API
+} catch (error) {
+  console.error('Error al actualizar los datos de Kardex:', error);
+  throw error; // Lanza el error para manejarlo en el componente
+}
+};
 

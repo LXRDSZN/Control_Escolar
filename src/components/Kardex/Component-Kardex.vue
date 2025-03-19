@@ -2,12 +2,16 @@
 import { ref, onMounted } from 'vue';
 import { obtenerkardex, eliminarKardex } from '@/backend/services/api';
 import AltaKardex from './Alta-Kardex/Alta-Kardex.vue';
-import { useToast } from 'vue-toast-notification'; // Importa useToast
-import 'vue-toast-notification/dist/theme-sugar.css'; // Importa el tema de notificaciones
+import ActualizarKardex from './Actualizar-Kardex/Actualizar-Kardex.vue';
+import { useToast } from 'vue-toast-notification';
+import 'vue-toast-notification/dist/theme-sugar.css';
 
-const Kardex = ref([]);  // Almacenará los Kardex obtenidos de la API
-const error = ref('');  // Para manejar posibles errores
+const Kardex = ref([]); // Almacenará los Kardex obtenidos de la API
+const error = ref(''); // Para manejar posibles errores
 const toast = useToast(); // Inicializa el toast
+const kardexEditando = ref(null); // Almacena el Kardex que se está editando
+const mostrarFormulario = ref(false); // Para mostrar el formulario de alta
+const mostrarFormularioActualizar = ref(false); // Para mostrar el formulario de actualización
 
 // Obtener los Kardex cuando el componente se monta
 onMounted(async () => {
@@ -20,12 +24,29 @@ onMounted(async () => {
   }
 });
 
-// Estado reactivo para mostrar el formulario
-const mostrarFormulario = ref(false);
-
-// Función para cambiar el estado y mostrar el formulario
+// Función para cambiar el estado y mostrar el formulario de alta
 const toggleFormulario = () => {
   mostrarFormulario.value = !mostrarFormulario.value;
+  mostrarFormularioActualizar.value = false; // Asegura que el formulario de actualización esté oculto
+};
+
+// Función para mostrar el formulario de actualización de Kardex
+const modificarKardex = (idKardex) => {
+  const kardex = Kardex.value.find(kardex => kardex.Id_Kardex === idKardex);
+  if (kardex) {
+    kardexEditando.value = kardex; // Almacena el Kardex que se está editando
+    mostrarFormularioActualizar.value = true; // Muestra el formulario de actualización
+    mostrarFormulario.value = false; // Oculta el formulario de alta
+  }
+};
+
+// Función para guardar los cambios actualizados
+const guardarCambiosActualizados = (kardexActualizado) => {
+  const index = Kardex.value.findIndex(kardex => kardex.Id_Kardex === kardexActualizado.Id_Kardex);
+  if (index !== -1) {
+    Kardex.value[index] = kardexActualizado; // Actualiza el Kardex en la lista
+  }
+  mostrarFormularioActualizar.value = false; // Oculta el formulario de actualización
 };
 
 // Función para eliminar un Kardex
@@ -40,8 +61,8 @@ const eliminarKardexPorId = async (idKardex) => {
 
     // Mostrar notificación de éxito
     toast.success('Kardex eliminado correctamente.', {
-      position: 'top-right', // Posición de la notificación
-      duration: 5000, // Duración en milisegundos
+      position: 'top-right',
+      duration: 5000,
     });
   } catch (err) {
     console.error('Error al eliminar el Kardex:', err);
@@ -54,14 +75,15 @@ const eliminarKardexPorId = async (idKardex) => {
   }
 };
 </script>
+
 <template>
   <div class="syste-panel">
     <div class="panel">
       <div class="header-container">
         <!-- Mostrar título y botón solo si el formulario no está visible -->
-        <h1 v-if="!mostrarFormulario">Lista de Kardex</h1>
+        <h1 v-if="!mostrarFormulario && !mostrarFormularioActualizar">Lista de Kardex</h1>
         <button
-          v-if="!mostrarFormulario"
+          v-if="!mostrarFormulario && !mostrarFormularioActualizar"
           @click="toggleFormulario"
           class="btn btn-add"
         >
@@ -69,15 +91,23 @@ const eliminarKardexPorId = async (idKardex) => {
         </button>
       </div>
 
-      <!-- Mostrar formulario de alta solo si 'mostrarFormulario' es verdadero -->
+      <!-- Formulario de alta -->
       <AltaKardex
         v-if="mostrarFormulario"
         @kardexRegistrado="kardex => Kardex.push(kardex)"
         @cancelar="toggleFormulario"
       />
 
-      <!-- Mostrar tabla de Kardex solo si 'mostrarFormulario' es falso -->
-      <table v-if="!mostrarFormulario" class="kardex-table">
+      <!-- Formulario de actualización -->
+      <ActualizarKardex
+        v-if="mostrarFormularioActualizar"
+        :kardex="kardexEditando"
+        @guardar="guardarCambiosActualizados"
+        @cancelar="mostrarFormularioActualizar = false"
+      />
+
+      <!-- Mostrar tabla de Kardex solo si los formularios no están visibles -->
+      <table v-if="!mostrarFormulario && !mostrarFormularioActualizar" class="kardex-table">
         <thead>
           <tr>
             <th>Id_Kardex</th>

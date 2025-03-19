@@ -98,14 +98,14 @@ const modificarHorario = async () => {
   try {
     // Preparar los datos para enviar
     const datosHorario = {
-      id_horario: id_horario.value, // Asegúrate de que sea un número o cadena válida
-      no_control: alumnoSeleccionado.value.No_Control, // Solo el No_Control
-      id_profesor: profesorSeleccionado.value.id_profesor, // Solo el id_profesor
-      id_grupo: grupoSeleccionado.value.Id_Grupo, // Solo el Id_Grupo
+      id_horario: id_horario.value, 
+      no_control: alumnoSeleccionado.value.No_Control, 
+      id_profesor: profesorSeleccionado.value.id_profesor, 
+      id_grupo: grupoSeleccionado.value.Id_Grupo, 
       aula: aula.value,
       hora: hora.value,
       dia: dia.value,
-      id_materia: materiaSeleccionada.value.Id_Materia, // Solo el Id_Materia
+      id_materia: materiaSeleccionada.value.Id_Materia, 
     };
 
     // Llamar a la API para actualizar el horario

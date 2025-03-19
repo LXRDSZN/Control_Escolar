@@ -18,7 +18,7 @@ import { ConsultaHorario , registrarHorario, eliminarHorario,  actualizarHorario
 import { Consultagrupos, registrarGrupo, eliminarGrupo,actualizarGrupo } from '../models/Grupos-CRUD/Grupos-Consulta.js';
 
 //imnpotamos modelos de KARDEX
-import { ConsultaKardex, registrarkardex, eliminarKardex } from '../models/Kardex-CRUD/Kardex-Consulta.js';
+import { ConsultaKardex, registrarkardex, eliminarKardex, actualizarKardex } from '../models/Kardex-CRUD/Kardex-Consulta.js';
 
 /*
 ##################################################################################################
@@ -598,5 +598,41 @@ router.put('/auth/modificarhorario/:id_horario', async (req, res) => {
   }
 });
 
+
+// Ruta para modificar los datos de Kardex
+router.put('/auth/modificarkardex/:id_kardex', async (req, res) => {
+  const { id_kardex } = req.params; // No_Control de Kardex (recibido como parámetro en la URL)
+  const {
+    no_control,
+    promedio,
+    id_materia,
+  } = req.body; // Datos de Lardex a actualizar recibidos en el cuerpo de la solicitud
+
+  try {
+    // Llamamos a la función que actualiza los datos de Kardex
+    const updatedKardex = await actualizarKardex( 
+
+      id_kardex,
+      no_control,
+      promedio,
+      id_materia
+    );
+
+    if (updatedKardex.success) {
+      return res.status(200).json({
+        success: true,
+        message: 'Datos de los Kardex actualizados con éxito'
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: updatedKardex.message || 'No se pudo actualizar los datos de los Kardex'
+      });
+    }
+  } catch (error) {
+    console.error('Error al actualizar los datos de los Kardex:', error);
+    return res.status(500).json({ success: false, message: 'Error del servidor', error });
+  }
+});
 
 export default router;
